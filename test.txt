@@ -1,0 +1,30 @@
+module.exports = {
+config = {    
+  name: "test",
+  version: "1.0.0",
+  author: "NTKhang", 
+  cooldowns: 5,
+  role: 2,
+  shortDescription: "test",
+  longDescription: "test",
+  category: "test",
+  guide: "{p}{n}"
+},
+
+  onStart: async function ({ message, event, api })  {
+    const moment = require("moment-timezone");
+    
+    var allM = (await api.getThreadHistory(event.threadID, 99999999999999990, undefined)).filter(i => i.type != "event");
+    console.log(allM[0]);
+    
+    const m = {};
+    
+    for (let item of allM) {
+      if (m[item.senderID] == undefined) m[item.senderID] = 0;
+      else m[item.senderID] = 1 + m[item.senderID];
+    }
+    
+    console.log(m);
+    return message.reply(JSON.stringify(m, null, 2)+`\nMessages are counted from the date ${moment(parseInt(allM[0].timestamp)).tz("Asia/Dhaka").format("DD/MM/YYYY hh:mm:ss")}`);
+  }
+};
