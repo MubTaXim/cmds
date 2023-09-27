@@ -1,0 +1,48 @@
+const fs = require('fs');
+const axios = require('axios');
+const path = require('path');
+
+module.exports = {
+  config: {
+    name: 'art',
+    version: '1.5',
+    author: 'JARiF',
+    countDown: 5,
+    role: 0,
+    category: "odof",
+    guide: {
+      vi: "",
+      en: "Reply to an image and type -art"
+    }
+  },
+
+  onStart: async function ({ event, api, args, message }) {
+    let imageUrl;
+
+    if (event.type === "message_reply") {
+      if (["photo", "sticker"].includes(event.messageReply.attachments[0]?.type)) {
+        imageUrl = event.messageReply.attachments[0].url;
+      } else {
+        return api.sendMessage({ body: "❌ | Reply must be an image." }, event.threadID);
+      }
+    } else if (args[0]?.match(/(https?:\/\/.*\.(?:png|jpg|jpeg))/g)) {
+      imageUrl = args[0];
+    } else {
+      return api.sendMessage({ body: "❌ | Reply to an image." }, event.threadID);
+    }
+
+    try {
+      const text = "same pose, same environment, same photo";
+      const API = `https://jarif-art.blackxlegend1.repl.co/transform?imgurl=${imageUrl}&prompt=${text}`;
+      const imageStream = await axios.get(API, { responseType: 'arraybuffer' }); 
+
+      return message.reply({
+        attachment: fs.createReadStream(imageStream.data), 
+        type: 'image/jpeg', 
+      });
+    } catch (error) {
+      console.error(error);
+      return message.reply("❌ | Failed to transform the image.");
+    }
+  }
+};
